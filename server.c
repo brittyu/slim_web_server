@@ -5,37 +5,14 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
-#include <fcntl.h>
-#include <sys/shm.h>
+#include <fcntl.h> 
+#include <sys/shm.h> 
 #include <signal.h>
+#include "extern.h"
+#include "request.h"
+#include "signal.h"
 
-#define PORT 8787
-#define SERV "0.0.0.0"
-#define QUEUE 20
-#define BUFF_SIZE 1024
-
-typedef struct doc_type
-{
-    char *key;
-    char *value;
-} HTTP_CONTENT_TYPE;
-
-HTTP_CONTENT_TYPE http_content_type[] = {
-    {"html", "text/html"},
-    {"gif", "image/gif"},
-    {"jpeg", "image/jpeg"}
-};
-
-int sockfd;
-char *http_res_tmpl = "HTTP/1.1 200 OK\r\n"
-    "Server: Cleey's Server V1.0\r\n"
-    "Accept-Ranges: bytes\r\n"
-    "Content-Length: %d\r\n"
-    "Connection: close\r\n"
-    "Content-Type: %s\r\n\r\n";
-
-void handler_signal(int sign);
-void http_send(int sock, char *content);
+extern int sockfd;
 
 int main()
 {
@@ -84,21 +61,4 @@ int main()
     close(sockfd);
 
     return 0;
-}
-
-void http_send(int sock_client, char *content)
-{
-    char HTTP_HEADER[BUFF_SIZE], HTTP_INFO[BUFF_SIZE];
-    int len = strlen(content);
-    sprintf(HTTP_HEADER, http_res_tmpl, len, "text/html");
-    len = sprintf(HTTP_INFO, "%s%s", HTTP_HEADER, content);
-
-    send(sock_client, HTTP_INFO, len, 0);
-}
-
-void handler_signal(int sign)
-{
-    fputs("\nSIGNAL INTERRUPT \nBye Brittyu! \nSAFE EXIT\n", stdout);
-    close(sockfd);
-    exit(0);
 }
