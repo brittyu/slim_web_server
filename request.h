@@ -1,4 +1,5 @@
 #ifndef _HTTP
+#define _HTTP
 
 #define PORT 8787
 #define SERV "0.0.0.0"
