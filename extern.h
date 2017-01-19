@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/select.h>
+#include <errno.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
