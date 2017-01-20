@@ -1,3 +1,4 @@
+#include "request.h"
 #include "slim_select.h"
 
 int
@@ -23,8 +24,7 @@ create_afinet_socket_address()
 void
 handle_client(int sockfd, char *buf)
 {
-    printf("Recv buff is: %s\n", buf);
-    write(sockfd, buf, strlen(buf) + 1);
+    http_send(sockfd, "Hello World");
 }
 
 void
@@ -39,7 +39,7 @@ slim_server_init()
     memset(slim_server_context, 0, sizeof(slim_server_context));
 
     for (int i = 0; i < SIZE; i++) {
-        slim_server_context->clifds[i] = -1;
+        slim_server_context->cli_fds[i] = -1;
     }
 }
 
@@ -62,7 +62,7 @@ socket_bind(int sockfd, struct sockaddr_in skaddr)
     }
 
     if (listen(sockfd, QUEUE) == -1) {
-        perror("listen error");
+        perror("Listen error");
         exit(1);
     }
 }
@@ -73,12 +73,12 @@ accept_client(int sockfd)
     struct sockaddr_in cliaddr;
     socklen_t cliaddrlen;
     cliaddrlen = sizeof(cliaddr);
-    int clifd = -1;
+    int cli_fd = -1;
 
 ACCEPT:
-    clifd = accept(sockfd, (struct sockaddr_in *)&cliaddr, &cliaddrlen);
+    cli_fd = accept(sockfd, (struct sockaddr_in *)&cliaddr, &cliaddrlen);
     
-    if (clifd == -1) {
+    if (cli_fd == -1) {
         if (errno == EINTR) {
             goto ACCEPT;
         } else {
@@ -89,8 +89,8 @@ ACCEPT:
 
     int i = 0;
     for (i = 0; i < SIZE; i++) {
-        if (slim_server_context->clifds[i] < 0) {
-            slim_server_context->clifds[i] = clifd;
+        if (slim_server_context->cli_fds[i] < 0) {
+            slim_server_context->cli_fds[i] = cli_fd;
             slim_server_context->cli_cnt++;
             break;
         }
@@ -106,22 +106,26 @@ void
 recv_client(fd_set *read_fds)
 {
     int i = 0, n = 0;
-    int clifd;
+    int cli_fd;
     char buf[MAXLINE] = {0};
+
     for (i = 0; i <= slim_server_context->cli_cnt; i++) {
-        clifd = slim_server_context->clifds[i];
-        if (clifd < 0) {
+        cli_fd = slim_server_context->cli_fds[i];
+
+        if (cli_fd < 0) {
             continue;
         }
 
-        if (FD_ISSET(clifd, read_fds)) {
-            n = read(clifd, buf, MAXLINE);
+        if (FD_ISSET(cli_fd, read_fds)) {
+            n = read(cli_fd, buf, MAXLINE);
             if (n <= 0) {
-                FD_CLR(clifd, &slim_server_context->all_fds);
-                close(clifd);
-                slim_server_context->clifds[i] = -1;
+                FD_CLR(cli_fd, &slim_server_context->all_fds);
+                close(cli_fd);
+                slim_server_context->cli_fds[i] = -1;
                 continue;
             }
+
+            handle_client(cli_fd, buf);
         }
     }
 }
@@ -129,31 +133,27 @@ recv_client(fd_set *read_fds)
 void
 begin_select_server(int sockfd)
 {
-    int clifd = -1;
+    int cli_fd = -1;
     int retval = 0;
     fd_set *read_fds = &slim_server_context->all_fds;
 
     struct timeval slim_time_val;
     int i = 0;
-
-    while (1) {
-        FD_ZERO(read_fds);
-        FD_SET(sockfd, read_fds);
-
+while (1) { FD_ZERO(read_fds); FD_SET(sockfd, read_fds); 
         slim_server_context->max_fd = sockfd;
 
         slim_time_val.tv_sec = 30;
         slim_time_val.tv_usec = 0;
 
         for (i = 0; i < slim_server_context->cli_cnt; i++) {
-            clifd = slim_server_context->clifds[i];
+            cli_fd = slim_server_context->cli_fds[i];
             
-            if (clifd != -1) {
-                FD_SET(clifd, read_fds);
+            if (cli_fd != -1) {
+                FD_SET(cli_fd, read_fds);
             }
 
-            slim_server_context->max_fd = (clifd > slim_server_context->max_fd) ? \
-                                          clifd : slim_server_context->max_fd;
+            slim_server_context->max_fd = (cli_fd > slim_server_context->max_fd) ? \
+                                          cli_fd : slim_server_context->max_fd;
         }
 
         retval = select(slim_server_context->max_fd + 1, read_fds, NULL, NULL,\

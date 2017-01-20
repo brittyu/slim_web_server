@@ -15,7 +15,7 @@
 typedef struct server_context_st
 {
     int cli_cnt;
-    int clifds[SIZE];
+    int cli_fds[SIZE];
     fd_set all_fds;
     int max_fd;
 } server_context_st;
