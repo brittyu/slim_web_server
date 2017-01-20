@@ -70,13 +70,13 @@ socket_bind(int sockfd, struct sockaddr_in skaddr)
 void
 accept_client(int sockfd)
 {
-    struct sockaddr_in cliaddr;
-    socklen_t cliaddrlen;
-    cliaddrlen = sizeof(cliaddr);
+    struct sockaddr_in cli_addr;
+    socklen_t cli_addr_len;
+    cli_addr_len = sizeof(cli_addr);
     int cli_fd = -1;
 
 ACCEPT:
-    cli_fd = accept(sockfd, (struct sockaddr_in *)&cliaddr, &cliaddrlen);
+    cli_fd = accept(sockfd, (struct sockaddr_in *)&cli_addr, &cli_addr_len);
     
     if (cli_fd == -1) {
         if (errno == EINTR) {
@@ -139,7 +139,10 @@ begin_select_server(int sockfd)
 
     struct timeval slim_time_val;
     int i = 0;
-while (1) { FD_ZERO(read_fds); FD_SET(sockfd, read_fds); 
+
+    while (1) {
+        FD_ZERO(read_fds);
+        FD_SET(sockfd, read_fds); 
         slim_server_context->max_fd = sockfd;
 
         slim_time_val.tv_sec = 30;
