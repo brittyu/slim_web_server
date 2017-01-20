@@ -84,8 +84,6 @@ begin_poll_server(int listen_fd)
                 }
             }
 
-            fprintf(stdout, "Accept a new client: %s:%d\n", inet_ntoa(cli_addr.sin_addr), cli_addr.sin_port);
-
             for (i = 1; i < OPEN_MAX; i++) {
                 if (cli_fds[i].fd < 0) {
                     cli_fds[i].fd = conn_fd;
@@ -133,7 +131,6 @@ handle_connection(struct pollfd *conn_fds, int num)
             }
         }
 
-        write(STDOUT_FILENO, buf, n);
-        write(conn_fds[i].fd, buf, n);
+        http_send(conn_fds[i].fd, "Hello World");
     }
 }

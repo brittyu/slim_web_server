@@ -7,11 +7,11 @@ int
 main()
 {
     int listen_fd, conn_fd, sock_fd;
-    struct sockaddr_in cli_addr;
-    socklen_t cli_addr_len;
     listen_fd = create_afinet_socket();
     struct sockaddr_in skaddr = create_afinet_socket_address();
     set_socket_opt(listen_fd);
     socket_bind(listen_fd, skaddr);
     begin_poll_server(listen_fd);
+
+    return 0;
 }
