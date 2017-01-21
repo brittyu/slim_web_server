@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/select.h>
+#include <sys/epoll.h>
 #include <poll.h>
 #include <errno.h>
 #include <sys/time.h>

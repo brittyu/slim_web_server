@@ -1,0 +1,14 @@
+#include "slim_epoll.h"
+
+int
+main()
+{
+    int listen_fd = create_afinet_socket();
+    struct sockaddr_in skaddr = create_afinet_socket_address();
+
+    set_socket_opt(listen_fd);
+    socket_bind(listen_fd, skaddr);
+    begin_epoll_server(listen_fd);
+    
+    return 0;
+}
