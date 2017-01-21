@@ -113,7 +113,7 @@ delete_event(int epoll_fd, int fd, int state)
     struct epoll_event delete_event;
 
     delete_event.events = state;
-    delete_event.fd = fd;
+    delete_event.data.fd = fd;
     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, &delete_event);
 }
 
@@ -143,4 +143,21 @@ do_read(int epoll_fd, int fd, char *buf)
     } else {
         modify_event(epoll_fd, fd, EPOLLIN);
     }
+}
+
+void
+do_write(int epoll_fd, int fd, char *buf)
+{
+    int nwrite;
+    nwrite = write(fd, buf, strlen(buf));
+
+    if (nwrite == -1) {
+        perror("Write error");
+        close(fd);
+        delete_event(epoll_fd, fd, EPOLLOUT);
+    } else {
+        modify_event(epoll_fd, fd, EPOLLIN);
+    }
+
+    memset(buf, 0, SIZE);
 }
