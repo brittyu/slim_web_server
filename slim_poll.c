@@ -129,8 +129,7 @@ handle_connection(struct pollfd *conn_fds, int num)
                 conn_fds[i].fd = -1;
                 continue;
             }
+            http_send(conn_fds[i].fd, "Hello World");
         }
-
-        http_send(conn_fds[i].fd, "Hello World");
     }
 }
